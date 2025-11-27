@@ -2,8 +2,8 @@
   "ecs7": true,
   "runtimeVersion": "7",
   "display": {
-    "title": "Jump Height Test",
-    "description": "Test jump height and altitude limits in Decentraland",
+    "title": "Mobile Test Scene",
+    "description": "Test player movement, inputs and collision in Decentraland",
     "navmapThumbnail": "images/scene-thumbnail.png",
     "favicon": "favicon_asset"
   },
@@ -30,7 +30,8 @@
       "11,0",
       "0,1",
       "1,1",
-      "1,2"
+      "1,2",
+      "2,1"
     ],
     "base": "0,0"
   },

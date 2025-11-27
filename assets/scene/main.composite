@@ -395,8 +395,8 @@
       "data": {
         "0": {
           "json": {
-            "name": "Jump Height Test",
-            "description": "Test jump height and altitude limits in Decentraland",
+            "name": "Mobile Test Scene",
+            "description": "Test player movement, inputs and collision in Decentraland",
             "thumbnail": "images/scene-thumbnail.png",
             "categories": [],
             "author": "SDK",
@@ -463,6 +463,10 @@
                 {
                   "x": 1,
                   "y": 2
+                },
+                {
+                  "x": 2,
+                  "y": 1
                 }
               ],
               "base": {
