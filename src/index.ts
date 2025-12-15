@@ -19,9 +19,11 @@ import {
   Tween,
   EasingFunction,
   TweenSequence,
-  TweenLoop
+  TweenLoop,
+  TextureWrapMode,
+  tweenSystem
 } from '@dcl/sdk/ecs'
-import { Vector3, Color4, Quaternion, Color3 } from '@dcl/sdk/math'
+import { Vector3, Color4, Quaternion, Color3, Vector2 } from '@dcl/sdk/math'
 import { movePlayerTo } from '~system/RestrictedActions'
 import { setupUI } from './ui'
 
@@ -1447,6 +1449,483 @@ export function main() {
   // Note: All trigger animations (rotating, moving, scaling) now use Tween/TweenSequence
 
   // -------------------------------------------------------------------------
+  // TEST 10: CONTINUOUS TWEENS TEST (ADR-285)
+  // Testing RotateContinuous, MoveContinuous, TextureMoveContinuous
+  // Located in positive Z parcels (2,5 to 5,7)
+  // -------------------------------------------------------------------------
+  const continuousTweenBaseX = 56  // Center of parcel 3,6
+  const continuousTweenBaseZ = 104  // Center of parcel row 6
+
+  createLabel('CONTINUOUS TWEENS TEST (ADR-285)\nInfinite motion without reset', Vector3.create(continuousTweenBaseX, 8, continuousTweenBaseZ - 10), 1.5)
+
+  // Platform floor for continuous tween test area
+  createPlatform(
+    Vector3.create(continuousTweenBaseX, 0.05, continuousTweenBaseZ),
+    Vector3.create(64, 0.1, 48),
+    Color4.create(0.15, 0.2, 0.25, 1)
+  )
+
+  // =========================================================================
+  // ROW 1: RotateContinuous - Infinite rotation (different axes)
+  // =========================================================================
+  const ctRow1Z = continuousTweenBaseZ - 12
+
+  createLabel('ROW 1: RotateContinuous (different axes)', Vector3.create(continuousTweenBaseX - 25, 3, ctRow1Z), 1)
+
+  // 1.1 Rotate Y-axis at 30 deg/sec (slow spin) - direction is pure Y quaternion
+  const rotateY30 = engine.addEntity()
+  Transform.create(rotateY30, {
+    position: Vector3.create(continuousTweenBaseX - 15, 2, ctRow1Z),
+    scale: Vector3.create(3, 3, 3)
+  })
+  MeshRenderer.setBox(rotateY30)
+  Material.setPbrMaterial(rotateY30, {
+    albedoColor: Color4.create(0.8, 0.3, 0.3, 1)
+  })
+  // Y-axis rotation: quaternion with Y component
+  Tween.setRotateContinuous(rotateY30, Quaternion.create(0, 1, 0, 0), 30)
+  createLabel('Y-Axis\n30°/sec', Vector3.create(continuousTweenBaseX - 15, 5, ctRow1Z), 0.9)
+
+  // 1.2 Rotate Y-axis at 90 deg/sec (fast spin)
+  const rotateY90 = engine.addEntity()
+  Transform.create(rotateY90, {
+    position: Vector3.create(continuousTweenBaseX - 5, 2, ctRow1Z),
+    scale: Vector3.create(3, 3, 3)
+  })
+  MeshRenderer.setBox(rotateY90)
+  Material.setPbrMaterial(rotateY90, {
+    albedoColor: Color4.create(0.8, 0.5, 0.3, 1)
+  })
+  Tween.setRotateContinuous(rotateY90, Quaternion.create(0, 1, 0, 0), 90)
+  createLabel('Y-Axis\n90°/sec', Vector3.create(continuousTweenBaseX - 5, 5, ctRow1Z), 0.9)
+
+  // 1.3 Rotate X-axis at 45 deg/sec (tumble)
+  const rotateX45 = engine.addEntity()
+  Transform.create(rotateX45, {
+    position: Vector3.create(continuousTweenBaseX + 5, 2, ctRow1Z),
+    scale: Vector3.create(3, 3, 3)
+  })
+  MeshRenderer.setBox(rotateX45)
+  Material.setPbrMaterial(rotateX45, {
+    albedoColor: Color4.create(0.3, 0.8, 0.3, 1)
+  })
+  // X-axis rotation: quaternion with X component
+  Tween.setRotateContinuous(rotateX45, Quaternion.create(1, 0, 0, 0), 45)
+  createLabel('X-Axis\n45°/sec', Vector3.create(continuousTweenBaseX + 5, 5, ctRow1Z), 0.9)
+
+  // 1.4 Rotate Z-axis at 60 deg/sec (roll)
+  const rotateZ60 = engine.addEntity()
+  Transform.create(rotateZ60, {
+    position: Vector3.create(continuousTweenBaseX + 15, 2, ctRow1Z),
+    scale: Vector3.create(3, 3, 3)
+  })
+  MeshRenderer.setBox(rotateZ60)
+  Material.setPbrMaterial(rotateZ60, {
+    albedoColor: Color4.create(0.3, 0.3, 0.8, 1)
+  })
+  // Z-axis rotation: quaternion with Z component
+  Tween.setRotateContinuous(rotateZ60, Quaternion.create(0, 0, 1, 0), 60)
+  createLabel('Z-Axis\n60°/sec', Vector3.create(continuousTweenBaseX + 15, 5, ctRow1Z), 0.9)
+
+  // 1.5 Multi-axis rotation (diagonal tumble)
+  const rotateMulti = engine.addEntity()
+  Transform.create(rotateMulti, {
+    position: Vector3.create(continuousTweenBaseX + 25, 2, ctRow1Z),
+    scale: Vector3.create(3, 3, 3)
+  })
+  MeshRenderer.setBox(rotateMulti)
+  Material.setPbrMaterial(rotateMulti, {
+    albedoColor: Color4.create(0.8, 0.3, 0.8, 1)
+  })
+  // Multi-axis: combined X+Y
+  Tween.setRotateContinuous(rotateMulti, Quaternion.create(0.707, 0.707, 0, 0), 40)
+  createLabel('X+Y Axis\n40°/sec', Vector3.create(continuousTweenBaseX + 25, 5, ctRow1Z), 0.9)
+
+  // =========================================================================
+  // ROW 2: RotateContinuous - Different speeds
+  // =========================================================================
+  const ctRow2Z = continuousTweenBaseZ
+
+  createLabel('ROW 2: RotateContinuous (different speeds)', Vector3.create(continuousTweenBaseX - 25, 3, ctRow2Z), 1)
+
+  // 2.1 Very slow rotation 10 deg/sec
+  const rotateSlow = engine.addEntity()
+  Transform.create(rotateSlow, {
+    position: Vector3.create(continuousTweenBaseX - 15, 2, ctRow2Z),
+    scale: Vector3.create(3, 3, 3)
+  })
+  MeshRenderer.setBox(rotateSlow)
+  Material.setPbrMaterial(rotateSlow, {
+    albedoColor: Color4.create(0.9, 0.6, 0.2, 1)
+  })
+  Tween.setRotateContinuous(rotateSlow, Quaternion.create(0, 1, 0, 0), 10)
+  createLabel('Y-Axis\n10°/sec', Vector3.create(continuousTweenBaseX - 15, 5, ctRow2Z), 0.9)
+
+  // 2.2 Medium rotation 60 deg/sec
+  const rotateMedium = engine.addEntity()
+  Transform.create(rotateMedium, {
+    position: Vector3.create(continuousTweenBaseX - 5, 2, ctRow2Z),
+    scale: Vector3.create(3, 3, 3)
+  })
+  MeshRenderer.setBox(rotateMedium)
+  Material.setPbrMaterial(rotateMedium, {
+    albedoColor: Color4.create(0.2, 0.9, 0.6, 1)
+  })
+  Tween.setRotateContinuous(rotateMedium, Quaternion.create(0, 1, 0, 0), 60)
+  createLabel('Y-Axis\n60°/sec', Vector3.create(continuousTweenBaseX - 5, 5, ctRow2Z), 0.9)
+
+  // 2.3 Fast rotation 180 deg/sec
+  const rotateFast = engine.addEntity()
+  Transform.create(rotateFast, {
+    position: Vector3.create(continuousTweenBaseX + 5, 2, ctRow2Z),
+    scale: Vector3.create(3, 3, 3)
+  })
+  MeshRenderer.setBox(rotateFast)
+  Material.setPbrMaterial(rotateFast, {
+    albedoColor: Color4.create(0.6, 0.2, 0.9, 1)
+  })
+  Tween.setRotateContinuous(rotateFast, Quaternion.create(0, 1, 0, 0), 180)
+  createLabel('Y-Axis\n180°/sec', Vector3.create(continuousTweenBaseX + 5, 5, ctRow2Z), 0.9)
+
+  // 2.4 Very fast rotation 360 deg/sec
+  const rotateVeryFast = engine.addEntity()
+  Transform.create(rotateVeryFast, {
+    position: Vector3.create(continuousTweenBaseX + 15, 2, ctRow2Z),
+    scale: Vector3.create(3, 3, 3)
+  })
+  MeshRenderer.setBox(rotateVeryFast)
+  Material.setPbrMaterial(rotateVeryFast, {
+    albedoColor: Color4.create(0.9, 0.2, 0.6, 1)
+  })
+  Tween.setRotateContinuous(rotateVeryFast, Quaternion.create(0, 1, 0, 0), 360)
+  createLabel('Y-Axis\n360°/sec', Vector3.create(continuousTweenBaseX + 15, 5, ctRow2Z), 0.9)
+
+  // =========================================================================
+  // ROW 3: Move - Bounded movement with YOYO (instead of MoveContinuous)
+  // =========================================================================
+  const ctRow3Z = continuousTweenBaseZ + 12
+
+  createLabel('ROW 3: Move with YOYO (bounded)', Vector3.create(continuousTweenBaseX - 25, 3, ctRow3Z), 1)
+
+  // 3.1 Move along X-axis (bounded)
+  const moveX = engine.addEntity()
+  const moveXStart = Vector3.create(continuousTweenBaseX - 20, 2, ctRow3Z)
+  const moveXEnd = Vector3.create(continuousTweenBaseX - 10, 2, ctRow3Z)
+  Transform.create(moveX, {
+    position: moveXStart,
+    scale: Vector3.create(2, 2, 2)
+  })
+  MeshRenderer.setSphere(moveX)
+  Material.setPbrMaterial(moveX, {
+    albedoColor: Color4.create(1.0, 0.4, 0.4, 1)
+  })
+  Tween.create(moveX, {
+    mode: Tween.Mode.Move({ start: moveXStart, end: moveXEnd }),
+    duration: 2000,
+    easingFunction: EasingFunction.EF_LINEAR
+  })
+  TweenSequence.create(moveX, { loop: TweenLoop.TL_YOYO, sequence: [] })
+  createLabel('X-Axis\n10m range', Vector3.create(continuousTweenBaseX - 15, 5, ctRow3Z), 0.9)
+
+  // 3.2 Move along Z-axis (bounded)
+  const moveZ = engine.addEntity()
+  const moveZStart = Vector3.create(continuousTweenBaseX - 5, 2, ctRow3Z - 5)
+  const moveZEnd = Vector3.create(continuousTweenBaseX - 5, 2, ctRow3Z + 5)
+  Transform.create(moveZ, {
+    position: moveZStart,
+    scale: Vector3.create(2, 2, 2)
+  })
+  MeshRenderer.setSphere(moveZ)
+  Material.setPbrMaterial(moveZ, {
+    albedoColor: Color4.create(0.4, 1.0, 0.4, 1)
+  })
+  Tween.create(moveZ, {
+    mode: Tween.Mode.Move({ start: moveZStart, end: moveZEnd }),
+    duration: 1500,
+    easingFunction: EasingFunction.EF_LINEAR
+  })
+  TweenSequence.create(moveZ, { loop: TweenLoop.TL_YOYO, sequence: [] })
+  createLabel('Z-Axis\n10m range', Vector3.create(continuousTweenBaseX - 5, 5, ctRow3Z), 0.9)
+
+  // 3.3 Move diagonally (bounded)
+  const moveDiag = engine.addEntity()
+  const moveDiagStart = Vector3.create(continuousTweenBaseX, 2, ctRow3Z - 5)
+  const moveDiagEnd = Vector3.create(continuousTweenBaseX + 10, 2, ctRow3Z + 5)
+  Transform.create(moveDiag, {
+    position: moveDiagStart,
+    scale: Vector3.create(2, 2, 2)
+  })
+  MeshRenderer.setSphere(moveDiag)
+  Material.setPbrMaterial(moveDiag, {
+    albedoColor: Color4.create(0.4, 0.4, 1.0, 1)
+  })
+  Tween.create(moveDiag, {
+    mode: Tween.Mode.Move({ start: moveDiagStart, end: moveDiagEnd }),
+    duration: 2500,
+    easingFunction: EasingFunction.EF_LINEAR
+  })
+  TweenSequence.create(moveDiag, { loop: TweenLoop.TL_YOYO, sequence: [] })
+  createLabel('Diagonal\n14m range', Vector3.create(continuousTweenBaseX + 5, 5, ctRow3Z), 0.9)
+
+  // 3.4 Move upward (Y-axis bounded)
+  const moveY = engine.addEntity()
+  const moveYStart = Vector3.create(continuousTweenBaseX + 15, 1, ctRow3Z)
+  const moveYEnd = Vector3.create(continuousTweenBaseX + 15, 6, ctRow3Z)
+  Transform.create(moveY, {
+    position: moveYStart,
+    scale: Vector3.create(2, 2, 2)
+  })
+  MeshRenderer.setSphere(moveY)
+  Material.setPbrMaterial(moveY, {
+    albedoColor: Color4.create(1.0, 1.0, 0.4, 1)
+  })
+  Tween.create(moveY, {
+    mode: Tween.Mode.Move({ start: moveYStart, end: moveYEnd }),
+    duration: 1500,
+    easingFunction: EasingFunction.EF_LINEAR
+  })
+  TweenSequence.create(moveY, { loop: TweenLoop.TL_YOYO, sequence: [] })
+  createLabel('Y-Axis\n5m range', Vector3.create(continuousTweenBaseX + 15, 8, ctRow3Z), 0.9)
+
+  // 3.5 Circular-ish path (X+Y combined)
+  const moveCircle = engine.addEntity()
+  const moveCircleStart = Vector3.create(continuousTweenBaseX + 25, 1, ctRow3Z)
+  const moveCircleEnd = Vector3.create(continuousTweenBaseX + 30, 5, ctRow3Z)
+  Transform.create(moveCircle, {
+    position: moveCircleStart,
+    scale: Vector3.create(2, 2, 2)
+  })
+  MeshRenderer.setSphere(moveCircle)
+  Material.setPbrMaterial(moveCircle, {
+    albedoColor: Color4.create(1.0, 0.4, 1.0, 1)
+  })
+  Tween.create(moveCircle, {
+    mode: Tween.Mode.Move({ start: moveCircleStart, end: moveCircleEnd }),
+    duration: 2000,
+    easingFunction: EasingFunction.EF_EASEQUAD
+  })
+  TweenSequence.create(moveCircle, { loop: TweenLoop.TL_YOYO, sequence: [] })
+  createLabel('X+Y Arc\nEased', Vector3.create(continuousTweenBaseX + 27, 8, ctRow3Z), 0.9)
+
+  // -------------------------------------------------------------------------
+  // TEST 11: TEXTURE TWEENS TEST (ADR-255)
+  // Testing TextureMove and TextureMoveContinuous
+  // -------------------------------------------------------------------------
+  const textureTweenBaseX = 56
+  const textureTweenBaseZ = 136  // Below the continuous tween area
+
+  createLabel('TEXTURE TWEENS TEST (ADR-255)\nAnimated textures', Vector3.create(textureTweenBaseX, 8, textureTweenBaseZ - 10), 1.5)
+
+  // Platform floor for texture tween test area
+  createPlatform(
+    Vector3.create(textureTweenBaseX, 0.05, textureTweenBaseZ),
+    Vector3.create(64, 0.1, 32),
+    Color4.create(0.2, 0.15, 0.25, 1)
+  )
+
+  // =========================================================================
+  // ROW 1: TextureMove with TL_RESTART - Continuous texture animation
+  // =========================================================================
+  const ttRow1Z = textureTweenBaseZ - 8
+
+  createLabel('ROW 1: TextureMove (continuous loop)', Vector3.create(textureTweenBaseX - 25, 3, ttRow1Z), 1)
+
+  // T1.1 Scroll right continuously using setTextureMoveContinuous
+  const texScrollRight = engine.addEntity()
+  Transform.create(texScrollRight, {
+    position: Vector3.create(textureTweenBaseX - 15, 2.5, ttRow1Z),
+    scale: Vector3.create(4, 4, 0.2)
+  })
+  MeshRenderer.setPlane(texScrollRight)
+  Material.setPbrMaterial(texScrollRight, {
+    albedoColor: Color4.create(0.3, 0.5, 0.9, 1),
+    texture: Material.Texture.Common({
+      src: 'images/scene-thumbnail.png',
+      wrapMode: TextureWrapMode.TWM_REPEAT
+    })
+  })
+  Tween.setTextureMoveContinuous(texScrollRight, Vector2.create(0.5, 0), 5000)
+  createLabel('Scroll Right\nContinuous', Vector3.create(textureTweenBaseX - 15, 6, ttRow1Z), 0.9)
+
+  // T1.2 Scroll left continuously using setTextureMoveContinuous
+  const texScrollLeft = engine.addEntity()
+  Transform.create(texScrollLeft, {
+    position: Vector3.create(textureTweenBaseX - 5, 2.5, ttRow1Z),
+    scale: Vector3.create(4, 4, 0.2)
+  })
+  MeshRenderer.setPlane(texScrollLeft)
+  Material.setPbrMaterial(texScrollLeft, {
+    albedoColor: Color4.create(0.5, 0.5, 0.5, 1),
+    texture: Material.Texture.Common({
+      src: 'images/scene-thumbnail.png',
+      wrapMode: TextureWrapMode.TWM_REPEAT
+    })
+  })
+  Tween.setTextureMoveContinuous(texScrollLeft, Vector2.create(-0.5, 0), 5000)
+  createLabel('Scroll Left\nContinuous', Vector3.create(textureTweenBaseX - 5, 6, ttRow1Z), 0.9)
+
+  // T1.3 Scroll up continuously using setTextureMoveContinuous
+  const texScrollUp = engine.addEntity()
+  Transform.create(texScrollUp, {
+    position: Vector3.create(textureTweenBaseX + 5, 2.5, ttRow1Z),
+    scale: Vector3.create(4, 4, 0.2)
+  })
+  MeshRenderer.setPlane(texScrollUp)
+  Material.setPbrMaterial(texScrollUp, {
+    albedoColor: Color4.create(0.9, 0.7, 0.3, 1),
+    texture: Material.Texture.Common({
+      src: 'images/scene-thumbnail.png',
+      wrapMode: TextureWrapMode.TWM_REPEAT
+    })
+  })
+  Tween.setTextureMoveContinuous(texScrollUp, Vector2.create(0, 0.5), 5000)
+  createLabel('Scroll Up\nContinuous', Vector3.create(textureTweenBaseX + 5, 6, ttRow1Z), 0.9)
+
+  // T1.4 Scroll down continuously using setTextureMoveContinuous
+  const texScrollDown = engine.addEntity()
+  Transform.create(texScrollDown, {
+    position: Vector3.create(textureTweenBaseX + 15, 2.5, ttRow1Z),
+    scale: Vector3.create(4, 4, 0.2)
+  })
+  MeshRenderer.setPlane(texScrollDown)
+  Material.setPbrMaterial(texScrollDown, {
+    albedoColor: Color4.create(0.3, 0.9, 0.7, 1),
+    texture: Material.Texture.Common({
+      src: 'images/scene-thumbnail.png',
+      wrapMode: TextureWrapMode.TWM_REPEAT
+    })
+  })
+  Tween.setTextureMoveContinuous(texScrollDown, Vector2.create(0, -0.5), 5000)
+  createLabel('Scroll Down\nContinuous', Vector3.create(textureTweenBaseX + 15, 6, ttRow1Z), 0.9)
+
+  // T1.5 Diagonal scroll continuously using setTextureMoveContinuous
+  const texScrollDiag = engine.addEntity()
+  Transform.create(texScrollDiag, {
+    position: Vector3.create(textureTweenBaseX + 25, 2.5, ttRow1Z),
+    scale: Vector3.create(4, 4, 0.2)
+  })
+  MeshRenderer.setPlane(texScrollDiag)
+  Material.setPbrMaterial(texScrollDiag, {
+    albedoColor: Color4.create(0.9, 0.3, 0.5, 1),
+    texture: Material.Texture.Common({
+      src: 'images/scene-thumbnail.png',
+      wrapMode: TextureWrapMode.TWM_REPEAT
+    })
+  })
+  Tween.setTextureMoveContinuous(texScrollDiag, Vector2.create(0.3, 0.3), 5000)
+  createLabel('Diagonal\nContinuous', Vector3.create(textureTweenBaseX + 25, 6, ttRow1Z), 0.9)
+
+  // =========================================================================
+  // ROW 2: TextureMove with manual restart loop
+  // =========================================================================
+  const ttRow2Z = textureTweenBaseZ + 4
+
+  createLabel('ROW 2: TextureMove (looping)', Vector3.create(textureTweenBaseX - 25, 3, ttRow2Z), 1)
+
+  // T2.1 TextureMove X
+  const texMoveX = engine.addEntity()
+  Transform.create(texMoveX, {
+    position: Vector3.create(textureTweenBaseX - 15, 2.5, ttRow2Z),
+    scale: Vector3.create(4, 4, 0.2)
+  })
+  MeshRenderer.setPlane(texMoveX)
+  Material.setPbrMaterial(texMoveX, {
+    albedoColor: Color4.create(0.7, 0.4, 0.9, 1),
+    texture: Material.Texture.Common({
+      src: 'images/scene-thumbnail.png',
+      wrapMode: TextureWrapMode.TWM_REPEAT
+    })
+  })
+  Tween.setTextureMove(texMoveX, Vector2.create(0, 0), Vector2.create(1, 0), 4000)
+  createLabel('X: 0→1', Vector3.create(textureTweenBaseX - 15, 6, ttRow2Z), 0.9)
+
+  // T2.2 TextureMove Y
+  const texMoveY = engine.addEntity()
+  Transform.create(texMoveY, {
+    position: Vector3.create(textureTweenBaseX - 5, 2.5, ttRow2Z),
+    scale: Vector3.create(4, 4, 0.2)
+  })
+  MeshRenderer.setPlane(texMoveY)
+  Material.setPbrMaterial(texMoveY, {
+    albedoColor: Color4.create(0.4, 0.7, 0.9, 1),
+    texture: Material.Texture.Common({
+      src: 'images/scene-thumbnail.png',
+      wrapMode: TextureWrapMode.TWM_REPEAT
+    })
+  })
+  Tween.setTextureMove(texMoveY, Vector2.create(0, 0), Vector2.create(0, 1), 4000)
+  createLabel('Y: 0→1', Vector3.create(textureTweenBaseX - 5, 6, ttRow2Z), 0.9)
+
+  // T2.3 TextureMove diagonal
+  const texMoveDiag2 = engine.addEntity()
+  Transform.create(texMoveDiag2, {
+    position: Vector3.create(textureTweenBaseX + 5, 2.5, ttRow2Z),
+    scale: Vector3.create(4, 4, 0.2)
+  })
+  MeshRenderer.setPlane(texMoveDiag2)
+  Material.setPbrMaterial(texMoveDiag2, {
+    albedoColor: Color4.create(0.9, 0.9, 0.4, 1),
+    texture: Material.Texture.Common({
+      src: 'images/scene-thumbnail.png',
+      wrapMode: TextureWrapMode.TWM_REPEAT
+    })
+  })
+  Tween.setTextureMove(texMoveDiag2, Vector2.create(0, 0), Vector2.create(1, 1), 4000)
+  createLabel('Diagonal', Vector3.create(textureTweenBaseX + 5, 6, ttRow2Z), 0.9)
+
+  // T2.4 TextureMove X reverse
+  const texMoveXRev = engine.addEntity()
+  Transform.create(texMoveXRev, {
+    position: Vector3.create(textureTweenBaseX + 15, 2.5, ttRow2Z),
+    scale: Vector3.create(4, 4, 0.2)
+  })
+  MeshRenderer.setPlane(texMoveXRev)
+  Material.setPbrMaterial(texMoveXRev, {
+    albedoColor: Color4.create(0.4, 0.9, 0.4, 1),
+    texture: Material.Texture.Common({
+      src: 'images/scene-thumbnail.png',
+      wrapMode: TextureWrapMode.TWM_REPEAT
+    })
+  })
+  Tween.setTextureMove(texMoveXRev, Vector2.create(1, 0), Vector2.create(0, 0), 4000)
+  createLabel('X: 1→0', Vector3.create(textureTweenBaseX + 15, 6, ttRow2Z), 0.9)
+
+  // T2.5 TextureMove Y reverse
+  const texMoveYRev = engine.addEntity()
+  Transform.create(texMoveYRev, {
+    position: Vector3.create(textureTweenBaseX + 25, 2.5, ttRow2Z),
+    scale: Vector3.create(4, 4, 0.2)
+  })
+  MeshRenderer.setPlane(texMoveYRev)
+  Material.setPbrMaterial(texMoveYRev, {
+    albedoColor: Color4.create(0.9, 0.5, 0.2, 1),
+    texture: Material.Texture.Common({
+      src: 'images/scene-thumbnail.png',
+      wrapMode: TextureWrapMode.TWM_REPEAT
+    })
+  })
+  Tween.setTextureMove(texMoveYRev, Vector2.create(0, 1), Vector2.create(0, 0), 4000)
+  createLabel('Y: 1→0', Vector3.create(textureTweenBaseX + 25, 6, ttRow2Z), 0.9)
+
+  // Store texture move entities for restart system
+  const textureMoveEntities = [
+    { entity: texMoveX, start: Vector2.create(0, 0), end: Vector2.create(1, 0), duration: 4000 },
+    { entity: texMoveY, start: Vector2.create(0, 0), end: Vector2.create(0, 1), duration: 4000 },
+    { entity: texMoveDiag2, start: Vector2.create(0, 0), end: Vector2.create(1, 1), duration: 4000 },
+    { entity: texMoveXRev, start: Vector2.create(1, 0), end: Vector2.create(0, 0), duration: 4000 },
+    { entity: texMoveYRev, start: Vector2.create(0, 1), end: Vector2.create(0, 0), duration: 4000 }
+  ]
+
+  // System to restart TextureMove tweens when they complete
+  engine.addSystem(() => {
+    for (const item of textureMoveEntities) {
+      if (tweenSystem.tweenCompleted(item.entity)) {
+        Tween.setTextureMove(item.entity, item.start, item.end, item.duration)
+      }
+    }
+  })
+
+  // -------------------------------------------------------------------------
   // INPUT HANDLING SYSTEMS
   // -------------------------------------------------------------------------
 
@@ -1566,5 +2045,5 @@ export function main() {
   })
 
   console.log('✅ All test platforms created')
-  console.log('📊 Tests: Staircase, Gap Jumps, Descend, Step Heights, Ramps, Corridor Width, Control Mapping, Trigger Areas, Wall Teleport')
+  console.log('📊 Tests: Staircase, Gap Jumps, Descend, Step Heights, Ramps, Corridor Width, Control Mapping, Trigger Areas, Wall Teleport, Continuous Tweens (ADR-285), Texture Tweens (ADR-255)')
 }
