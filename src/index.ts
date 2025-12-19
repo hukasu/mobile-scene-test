@@ -15,6 +15,7 @@ import { setupTeleportTest } from './tests/test09-teleport'
 import { setupContinuousTweensTest } from './tests/test10-continuous-tweens'
 import { setupTextureTweensTest } from './tests/test11-texture-tweens'
 import { setupBoundaryTriggerTest } from './tests/test13-boundary-trigger'
+import { setupVideoStreamingTest } from './tests/test14-video-streaming'
 
 // ============================================================================
 // MAIN SCENE
@@ -75,6 +76,9 @@ export function main() {
   // TEST 13: Boundary Trigger Test
   setupBoundaryTriggerTest()
 
+  // TEST 14: Video Streaming Test
+  setupVideoStreamingTest()
+
   console.log('All test platforms created')
-  console.log('Tests: Staircase, Gap Jumps, Descend, Step Heights, Ramps, Corridor Width, Control Mapping, Trigger Areas, Wall Teleport, Continuous Tweens, Texture Tweens, Boundary Trigger')
+  console.log('Tests: Staircase, Gap Jumps, Descend, Step Heights, Ramps, Corridor Width, Control Mapping, Trigger Areas, Wall Teleport, Continuous Tweens, Texture Tweens, Boundary Trigger, Video Streaming')
 }
