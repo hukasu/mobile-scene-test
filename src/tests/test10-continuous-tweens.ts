@@ -192,13 +192,14 @@ export function setupContinuousTweensTest() {
 
   // =========================================================================
   // ROW 2: Two-axis diagonal combinations
-  // Combining euler angles creates rotation around diagonal axes
+  // Directly specify axis vector in quaternion (x,y,z) - SDK normalizes it
+  // Using w=1 to avoid edge cases with w=0
   // =========================================================================
   const ctRow2Z = continuousTweenBaseZ
 
   createLabel('ROW 2: Diagonal Rotations', Vector3.create(continuousTweenBaseX - 25, 3, ctRow2Z), 1)
 
-  // 2.1 XY diagonal - rotation axis is diagonal between X and Y
+  // 2.1 XY diagonal - axis is (1,1,0) normalized = (0.707, 0.707, 0)
   const rotateXY = engine.addEntity()
   Transform.create(rotateXY, {
     position: Vector3.create(continuousTweenBaseX - 16, 2, ctRow2Z),
@@ -207,10 +208,10 @@ export function setupContinuousTweensTest() {
   MeshRenderer.setBox(rotateXY)
   Material.setPbrMaterial(rotateXY, { albedoColor: Color4.create(0.8, 0.8, 0.3, 1) })
   addOrientationMarkers(rotateXY, 1)
-  Tween.setRotateContinuous(rotateXY, Quaternion.fromEulerDegrees(90, 90, 0), rotationSpeed)
+  Tween.setRotateContinuous(rotateXY, Quaternion.create(1, 1, 0, 1), rotationSpeed)
   createLabel('XY diag', Vector3.create(continuousTweenBaseX - 16, 4, ctRow2Z), 0.9)
 
-  // 2.2 XZ diagonal - rotation axis is diagonal between X and Z
+  // 2.2 XZ diagonal - axis is (1,0,1) normalized = (0.707, 0, 0.707)
   const rotateXZ = engine.addEntity()
   Transform.create(rotateXZ, {
     position: Vector3.create(continuousTweenBaseX - 8, 2, ctRow2Z),
@@ -219,10 +220,10 @@ export function setupContinuousTweensTest() {
   MeshRenderer.setBox(rotateXZ)
   Material.setPbrMaterial(rotateXZ, { albedoColor: Color4.create(0.3, 0.8, 0.8, 1) })
   addOrientationMarkers(rotateXZ, 1)
-  Tween.setRotateContinuous(rotateXZ, Quaternion.fromEulerDegrees(90, 0, 90), rotationSpeed)
+  Tween.setRotateContinuous(rotateXZ, Quaternion.create(1, 0, 1, 1), rotationSpeed)
   createLabel('XZ diag', Vector3.create(continuousTweenBaseX - 8, 4, ctRow2Z), 0.9)
 
-  // 2.3 YZ diagonal - rotation axis is diagonal between Y and Z
+  // 2.3 YZ diagonal - axis is (0,1,1) normalized = (0, 0.707, 0.707)
   const rotateYZ = engine.addEntity()
   Transform.create(rotateYZ, {
     position: Vector3.create(continuousTweenBaseX, 2, ctRow2Z),
@@ -231,7 +232,7 @@ export function setupContinuousTweensTest() {
   MeshRenderer.setBox(rotateYZ)
   Material.setPbrMaterial(rotateYZ, { albedoColor: Color4.create(0.8, 0.3, 0.8, 1) })
   addOrientationMarkers(rotateYZ, 1)
-  Tween.setRotateContinuous(rotateYZ, Quaternion.fromEulerDegrees(0, 90, 90), rotationSpeed)
+  Tween.setRotateContinuous(rotateYZ, Quaternion.create(0, 1, 1, 1), rotationSpeed)
   createLabel('YZ diag', Vector3.create(continuousTweenBaseX, 4, ctRow2Z), 0.9)
 
   // =========================================================================
@@ -241,7 +242,7 @@ export function setupContinuousTweensTest() {
 
   createLabel('ROW 3: Space Diagonal', Vector3.create(continuousTweenBaseX - 25, 3, ctRow3Z), 1)
 
-  // 3.1 XYZ space diagonal - rotation axis goes corner to corner
+  // 3.1 XYZ space diagonal - axis is (1,1,1) normalized = (0.577, 0.577, 0.577)
   const rotateXYZ = engine.addEntity()
   Transform.create(rotateXYZ, {
     position: Vector3.create(continuousTweenBaseX - 8, 2, ctRow3Z),
@@ -250,7 +251,7 @@ export function setupContinuousTweensTest() {
   MeshRenderer.setBox(rotateXYZ)
   Material.setPbrMaterial(rotateXYZ, { albedoColor: Color4.create(1, 1, 1, 1) })
   addOrientationMarkers(rotateXYZ, 1)
-  Tween.setRotateContinuous(rotateXYZ, Quaternion.fromEulerDegrees(90, 90, 90), rotationSpeed)
+  Tween.setRotateContinuous(rotateXYZ, Quaternion.create(1, 1, 1, 1), rotationSpeed)
   createLabel('XYZ diag', Vector3.create(continuousTweenBaseX - 8, 4, ctRow3Z), 0.9)
 
   // =========================================================================
