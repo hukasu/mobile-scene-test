@@ -35,8 +35,8 @@ export function main() {
   // Version label on the floor at origin
   const versionLabel = engine.addEntity()
   Transform.create(versionLabel, {
-    position: Vector3.create(0, 0.05, 0),
-    rotation: Quaternion.fromEulerDegrees(-90, 180, 0)
+    position: Vector3.create(-2, 0.1, 0),
+    rotation: Quaternion.fromEulerDegrees(90, 0, 0)
   })
   TextShape.create(versionLabel, {
     text: `v${SCENE_VERSION}`,
