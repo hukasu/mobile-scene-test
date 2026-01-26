@@ -4,7 +4,10 @@ import {
   MeshRenderer,
   Material,
   Tween,
-  Entity
+  Entity,
+  TweenLoop,
+  EasingFunction,
+  TweenSequence
 } from '@dcl/sdk/ecs'
 import { Vector3, Color4, Quaternion } from '@dcl/sdk/math'
 import { createPlatform, createLabel } from '../utils/helpers'
@@ -115,80 +118,123 @@ export function setupContinuousTweensTest() {
 
   createLabel('ROW 1: Single Axis Rotations', Vector3.create(continuousTweenBaseX - 25, 3, ctRow1Z), 1)
 
+  function createRotateContinuousEntity(label: string, x: number, z: number, rotationAxis: Vector3, color: Color4): Entity {
+    const entity = engine.addEntity()
+    Transform.create(entity, {
+      position: Vector3.create(x, 2, z),
+      scale: Vector3.create(1, 1, 1)
+    })
+    MeshRenderer.setBox(entity)
+    Material.setPbrMaterial(entity, { albedoColor: color })
+    addOrientationMarkers(entity, 1)
+    Tween.setRotateContinuous(entity, Quaternion.fromAngleAxis(1, rotationAxis), rotationSpeed)
+    createLabel(label, Vector3.create(x, 4, z), 0.9)
+    const referenceEntity = engine.addEntity()
+    Transform.create(referenceEntity, {
+      position: Vector3.create(x, 2, z - 4),
+      scale: Vector3.create(1, 1, 1)
+    })
+    MeshRenderer.setBox(referenceEntity)
+    Material.setPbrMaterial(referenceEntity, { albedoColor: color })
+    addOrientationMarkers(referenceEntity, 1)
+    Tween.create(referenceEntity, {
+      mode: Tween.Mode.Rotate({
+        start: Quaternion.fromAngleAxis(0, rotationAxis),
+        end: Quaternion.fromAngleAxis(90, rotationAxis)
+      }),
+      duration: 2000,
+      easingFunction: EasingFunction.EF_LINEAR
+    })
+    TweenSequence.create(referenceEntity, {
+      loop: TweenLoop.TL_RESTART,
+      sequence: [
+        {
+          mode: Tween.Mode.Rotate({
+            start: Quaternion.fromAngleAxis(90, rotationAxis),
+            end: Quaternion.fromAngleAxis(180, rotationAxis)
+          }),
+          duration: 2000,
+          easingFunction: EasingFunction.EF_LINEAR
+        },
+        {
+          mode: Tween.Mode.Rotate({
+            start: Quaternion.fromAngleAxis(180, rotationAxis),
+            end: Quaternion.fromAngleAxis(270, rotationAxis)
+          }),
+          duration: 2000,
+          easingFunction: EasingFunction.EF_LINEAR
+        },
+        {
+          mode: Tween.Mode.Rotate({
+            start: Quaternion.fromAngleAxis(270, rotationAxis),
+            end: Quaternion.fromAngleAxis(360, rotationAxis)
+          }),
+          duration: 2000,
+          easingFunction: EasingFunction.EF_LINEAR
+        }
+      ]
+    })
+    createLabel(`${label} Reference`, Vector3.create(x, 4, z - 4), 0.9)
+
+    return entity
+  }
+
   // 1.1 Rotate around Y-axis (spinning like a top)
   // fromEulerDegrees(0, angle, 0) produces quaternion with y-component for Y-axis
-  const rotateY = engine.addEntity()
-  Transform.create(rotateY, {
-    position: Vector3.create(continuousTweenBaseX - 20, 2, ctRow1Z),
-    scale: Vector3.create(1, 1, 1)
-  })
-  MeshRenderer.setBox(rotateY)
-  Material.setPbrMaterial(rotateY, { albedoColor: Color4.create(0.8, 0.3, 0.3, 1) })
-  addOrientationMarkers(rotateY, 1)
-  Tween.setRotateContinuous(rotateY, Quaternion.fromEulerDegrees(0, 90, 0), rotationSpeed)
-  createLabel('Y', Vector3.create(continuousTweenBaseX - 20, 4, ctRow1Z), 0.9)
+  const rotateY = createRotateContinuousEntity(
+    "Y",
+    continuousTweenBaseX - 20,
+    ctRow1Z,
+    Vector3.create(0, 1, 0),
+    Color4.create(0.8, 0.3, 0.3, 1)
+  )
 
   // 1.2 Rotate around Y-axis (opposite direction)
-  const rotateInvY = engine.addEntity()
-  Transform.create(rotateInvY, {
-    position: Vector3.create(continuousTweenBaseX - 12, 2, ctRow1Z),
-    scale: Vector3.create(1, 1, 1)
-  })
-  MeshRenderer.setBox(rotateInvY)
-  Material.setPbrMaterial(rotateInvY, { albedoColor: Color4.create(0.5, 0.2, 0.2, 1) })
-  addOrientationMarkers(rotateInvY, 1)
-  Tween.setRotateContinuous(rotateInvY, Quaternion.fromEulerDegrees(0, -90, 0), rotationSpeed)
-  createLabel('-Y', Vector3.create(continuousTweenBaseX - 12, 4, ctRow1Z), 0.9)
+  const rotateInvY = createRotateContinuousEntity(
+    "-Y",
+    continuousTweenBaseX - 12,
+    ctRow1Z,
+    Vector3.create(0, -1, 0),
+    Color4.create(0.5, 0.2, 0.2, 1)
+  )
 
   // 1.3 Rotate around X-axis (tumbling forward/back)
   // fromEulerDegrees(angle, 0, 0) produces quaternion with x-component for X-axis
-  const rotateX = engine.addEntity()
-  Transform.create(rotateX, {
-    position: Vector3.create(continuousTweenBaseX - 4, 2, ctRow1Z),
-    scale: Vector3.create(1, 1, 1)
-  })
-  MeshRenderer.setBox(rotateX)
-  Material.setPbrMaterial(rotateX, { albedoColor: Color4.create(0.3, 0.8, 0.3, 1) })
-  addOrientationMarkers(rotateX, 1)
-  Tween.setRotateContinuous(rotateX, Quaternion.fromEulerDegrees(90, 0, 0), rotationSpeed)
-  createLabel('X', Vector3.create(continuousTweenBaseX - 4, 4, ctRow1Z), 0.9)
+  const rotateX = createRotateContinuousEntity(
+    "X",
+    continuousTweenBaseX - 4,
+    ctRow1Z,
+    Vector3.create(1, 0, 0),
+    Color4.create(0.3, 0.8, 0.3, 1)
+  )
 
   // 1.4 Rotate around X-axis (opposite direction)
-  const rotateInvX = engine.addEntity()
-  Transform.create(rotateInvX, {
-    position: Vector3.create(continuousTweenBaseX + 4, 2, ctRow1Z),
-    scale: Vector3.create(1, 1, 1)
-  })
-  MeshRenderer.setBox(rotateInvX)
-  Material.setPbrMaterial(rotateInvX, { albedoColor: Color4.create(0.2, 0.5, 0.2, 1) })
-  addOrientationMarkers(rotateInvX, 1)
-  Tween.setRotateContinuous(rotateInvX, Quaternion.fromEulerDegrees(-90, 0, 0), rotationSpeed)
-  createLabel('-X', Vector3.create(continuousTweenBaseX + 4, 4, ctRow1Z), 0.9)
+  const rotateInvX = createRotateContinuousEntity(
+    "-X",
+    continuousTweenBaseX + 4,
+    ctRow1Z,
+    Vector3.create(-1, 0, 0),
+    Color4.create(0.2, 0.5, 0.2, 1)
+  )
 
   // 1.5 Rotate around Z-axis (rolling left/right)
   // fromEulerDegrees(0, 0, angle) produces quaternion with z-component for Z-axis
-  const rotateZ = engine.addEntity()
-  Transform.create(rotateZ, {
-    position: Vector3.create(continuousTweenBaseX + 12, 2, ctRow1Z),
-    scale: Vector3.create(1, 1, 1)
-  })
-  MeshRenderer.setBox(rotateZ)
-  Material.setPbrMaterial(rotateZ, { albedoColor: Color4.create(0.3, 0.3, 0.8, 1) })
-  addOrientationMarkers(rotateZ, 1)
-  Tween.setRotateContinuous(rotateZ, Quaternion.fromEulerDegrees(0, 0, 90), rotationSpeed)
-  createLabel('Z', Vector3.create(continuousTweenBaseX + 12, 4, ctRow1Z), 0.9)
+  const rotateZ = createRotateContinuousEntity(
+    "Z",
+    continuousTweenBaseX + 12,
+    ctRow1Z,
+    Vector3.create(0, 0, 1),
+    Color4.create(0.3, 0.3, 0.8, 1)
+  )
 
   // 1.6 Rotate around Z-axis (opposite direction)
-  const rotateInvZ = engine.addEntity()
-  Transform.create(rotateInvZ, {
-    position: Vector3.create(continuousTweenBaseX + 20, 2, ctRow1Z),
-    scale: Vector3.create(1, 1, 1)
-  })
-  MeshRenderer.setBox(rotateInvZ)
-  Material.setPbrMaterial(rotateInvZ, { albedoColor: Color4.create(0.2, 0.2, 0.5, 1) })
-  addOrientationMarkers(rotateInvZ, 1)
-  Tween.setRotateContinuous(rotateInvZ, Quaternion.fromEulerDegrees(0, 0, -90), rotationSpeed)
-  createLabel('-Z', Vector3.create(continuousTweenBaseX + 20, 4, ctRow1Z), 0.9)
+  const rotateInvZ = createRotateContinuousEntity(
+    "-Z",
+    continuousTweenBaseX + 20,
+    ctRow1Z,
+    Vector3.create(0, 0, -1),
+    Color4.create(0.2, 0.2, 0.5, 1)
+  )
 
   // =========================================================================
   // ROW 2: Two-axis diagonal combinations
@@ -200,71 +246,56 @@ export function setupContinuousTweensTest() {
   createLabel('ROW 2: Diagonal Rotations', Vector3.create(continuousTweenBaseX - 25, 3, ctRow2Z), 1)
 
   // 2.1 XY diagonal - axis is (1,1,0) normalized = (0.707, 0.707, 0)
-  const rotateXY = engine.addEntity()
-  Transform.create(rotateXY, {
-    position: Vector3.create(continuousTweenBaseX - 16, 2, ctRow2Z),
-    scale: Vector3.create(1, 1, 1)
-  })
-  MeshRenderer.setBox(rotateXY)
-  Material.setPbrMaterial(rotateXY, { albedoColor: Color4.create(0.8, 0.8, 0.3, 1) })
-  addOrientationMarkers(rotateXY, 1)
-  Tween.setRotateContinuous(rotateXY, Quaternion.create(1, 1, 0, 1), rotationSpeed)
-  createLabel('XY diag', Vector3.create(continuousTweenBaseX - 16, 4, ctRow2Z), 0.9)
+  const rotateXY = createRotateContinuousEntity(
+    "XY",
+    continuousTweenBaseX - 16,
+    ctRow2Z,
+    Vector3.create(1, 1, 0),
+    Color4.create(0.8, 0.8, 0.3, 1)
+  )
 
   // 2.2 XZ diagonal - axis is (1,0,1) normalized = (0.707, 0, 0.707)
-  const rotateXZ = engine.addEntity()
-  Transform.create(rotateXZ, {
-    position: Vector3.create(continuousTweenBaseX - 8, 2, ctRow2Z),
-    scale: Vector3.create(1, 1, 1)
-  })
-  MeshRenderer.setBox(rotateXZ)
-  Material.setPbrMaterial(rotateXZ, { albedoColor: Color4.create(0.3, 0.8, 0.8, 1) })
-  addOrientationMarkers(rotateXZ, 1)
-  Tween.setRotateContinuous(rotateXZ, Quaternion.create(1, 0, 1, 1), rotationSpeed)
-  createLabel('XZ diag', Vector3.create(continuousTweenBaseX - 8, 4, ctRow2Z), 0.9)
+  const rotateXZ = createRotateContinuousEntity(
+    "XZ",
+    continuousTweenBaseX - 8,
+    ctRow2Z,
+    Vector3.create(1, 0, 1),
+    Color4.create(0.3, 0.8, 0.8, 1)
+  )
 
   // 2.3 YZ diagonal - axis is (0,1,1) normalized = (0, 0.707, 0.707)
-  const rotateYZ = engine.addEntity()
-  Transform.create(rotateYZ, {
-    position: Vector3.create(continuousTweenBaseX, 2, ctRow2Z),
-    scale: Vector3.create(1, 1, 1)
-  })
-  MeshRenderer.setBox(rotateYZ)
-  Material.setPbrMaterial(rotateYZ, { albedoColor: Color4.create(0.8, 0.3, 0.8, 1) })
-  addOrientationMarkers(rotateYZ, 1)
-  Tween.setRotateContinuous(rotateYZ, Quaternion.create(0, 1, 1, 1), rotationSpeed)
-  createLabel('YZ diag', Vector3.create(continuousTweenBaseX, 4, ctRow2Z), 0.9)
+  const rotateYZ = createRotateContinuousEntity(
+    "YZ",
+    continuousTweenBaseX,
+    ctRow2Z,
+    Vector3.create(0, 1, 1),
+    Color4.create(0.8, 0.3, 0.8, 1)
+  )
 
   // =========================================================================
   // ROW 3: All three axes - space diagonal rotation
   // =========================================================================
-  const ctRow3Z = continuousTweenBaseZ + 8
+  const ctRow3Z = continuousTweenBaseZ + 12
 
   createLabel('ROW 3: Space Diagonal', Vector3.create(continuousTweenBaseX - 25, 3, ctRow3Z), 1)
 
   // 3.1 XYZ space diagonal - axis is (1,1,1) normalized = (0.577, 0.577, 0.577)
-  const rotateXYZ = engine.addEntity()
-  Transform.create(rotateXYZ, {
-    position: Vector3.create(continuousTweenBaseX - 12, 2, ctRow3Z),
-    scale: Vector3.create(1, 1, 1)
-  })
-  MeshRenderer.setBox(rotateXYZ)
-  Material.setPbrMaterial(rotateXYZ, { albedoColor: Color4.create(1, 1, 1, 1) })
-  addOrientationMarkers(rotateXYZ, 1)
-  Tween.setRotateContinuous(rotateXYZ, Quaternion.create(1, 1, 1, 1), rotationSpeed)
-  createLabel('XYZ diag', Vector3.create(continuousTweenBaseX - 12, 4, ctRow3Z), 0.9)
+  const rotateXYZ = createRotateContinuousEntity(
+    "XYZ",
+    continuousTweenBaseX - 12,
+    ctRow3Z,
+    Vector3.create(1, 1, 1),
+    Color4.create(1, 1, 1, 1)
+  )
 
   // 3.2 Zero quaternion - edge case test (0,0,0,0)
-  const rotateZero = engine.addEntity()
-  Transform.create(rotateZero, {
-    position: Vector3.create(continuousTweenBaseX, 2, ctRow3Z),
-    scale: Vector3.create(1, 1, 1)
-  })
-  MeshRenderer.setBox(rotateZero)
-  Material.setPbrMaterial(rotateZero, { albedoColor: Color4.create(0.5, 0.5, 0.5, 1) })
-  addOrientationMarkers(rotateZero, 1)
-  Tween.setRotateContinuous(rotateZero, Quaternion.create(0, 0, 0, 0), rotationSpeed)
-  createLabel('(0,0,0,0)', Vector3.create(continuousTweenBaseX, 4, ctRow3Z), 0.9)
+  const rotateZero = createRotateContinuousEntity(
+    "(0,0,0,0)",
+    continuousTweenBaseX,
+    ctRow3Z,
+    Vector3.create(0, 0, 0),
+    Color4.create(0.5, 0.5, 0.5, 1)
+  )
 
   // =========================================================================
   // ROW 4: MoveContinuous - Bullet spawner (create, move, delete)
