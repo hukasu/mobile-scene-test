@@ -1,5 +1,5 @@
 import { engine, Transform, TextShape } from '@dcl/sdk/ecs'
-import { Vector3, Color4, Color3 } from '@dcl/sdk/math'
+import { Vector3, Color4, Color3, Quaternion } from '@dcl/sdk/math'
 import { setupUI } from './ui'
 import { createPlatform, createLabel } from './utils/helpers'
 import { SCENE_VERSION } from './version'
@@ -32,16 +32,17 @@ import { setupMorphTargetsTest } from './tests/test20-morph-targets'
 export function main() {
   setupUI()
 
-  // Version label at origin
+  // Version label on the floor at origin
   const versionLabel = engine.addEntity()
   Transform.create(versionLabel, {
-    position: Vector3.create(0, 0, 0)
+    position: Vector3.create(0, 0.01, 0),
+    rotation: Quaternion.fromEulerDegrees(-90, 0, 0)
   })
   TextShape.create(versionLabel, {
     text: `v${SCENE_VERSION}`,
-    fontSize: 1,
+    fontSize: 8,
     textColor: Color4.White(),
-    outlineWidth: 0.2,
+    outlineWidth: 0.3,
     outlineColor: Color3.Black()
   })
 
