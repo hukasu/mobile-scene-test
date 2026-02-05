@@ -31,13 +31,16 @@ export function setupAttachPointsTest() {
 
 function createAttachment(albedoColor: Color4, anchorPointId: AvatarAnchorPointType): Entity {
     const attachment = engine.addEntity();
-    Transform.create(attachment, {
-        position: Vector3.create(0, 10, 0),
-        rotation: Quaternion.fromAngleAxis(180, Vector3.Forward()),
-        scale: Vector3.create(0.5, 0.1, 0.25),
-    });
-    MeshRenderer.setCylinder(attachment);
-    Material.setPbrMaterial(attachment, { albedoColor });
     AvatarAttach.create(attachment, { anchorPointId });
+
+    const child = engine.addEntity();
+    Transform.create(child, {
+        position: Vector3.create(0, 0, 0.125),
+        scale: Vector3.create(0.25, 0.1, 0.5),
+        parent: attachment,
+    });
+    MeshRenderer.setCylinder(child);
+    Material.setPbrMaterial(child, { albedoColor });
+
     return attachment;
 }
